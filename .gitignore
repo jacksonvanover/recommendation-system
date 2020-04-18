@@ -1,0 +1,4 @@
+data/*
+jacksonvanover_preds_clustering.txt
+*.ipynb*
+__*
