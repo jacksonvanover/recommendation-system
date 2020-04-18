@@ -1,3 +1,6 @@
+data:
+	./data/build.sh
+
 go:
 	./src/throw_the_lever.py
 
