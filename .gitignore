@@ -1,4 +1,5 @@
-data/*
 jacksonvanover_preds_clustering.txt
 *.ipynb*
 __*
+*my_*
+*.pckl
