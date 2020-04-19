@@ -29,14 +29,14 @@ class ClusteringRecommender():
         else:
             print("\n====== SPLITTING TRAINING SET ======\n")
 
-            if self.splitter == "my-splitter":
+            if splitter == "my-splitter":
                 split_training_set()
             
                 self.df_train = pd.read_csv("./data/my_train.csv").sort_values(by=['customer-id','movie-id'])
                 self.df_test = pd.read_csv("./data/my_test_blank.csv")
                 self.df_test_answers = pd.read_csv("./data/my_test_answers.csv")
 
-            elif self.splitter == "sklearn":
+            elif splitter == "sklearn":
                 split = train_test_split(pd.read_csv("./data/train.csv"))
 
                 self.df_train = split[0]
@@ -131,6 +131,7 @@ class ClusteringRecommender():
             for rating in self.df_test["rating"].tolist():
                 print(int(rating), file=f)
 
+        df_test.to_csv("./data/my_test_filled.csv", index=False)
 
     def calculate_error(self):
         if self.production:
