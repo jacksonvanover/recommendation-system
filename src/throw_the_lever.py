@@ -43,7 +43,10 @@ def main():
     print("\n====== INITIALIZING RECOMMENDER ======\n")
     recommender = ClusteringRecommender(production=False)
 
+    print("\n====== PERFORMING CLUSTERING ======\n")
     recommender.cluster(n_clusters=5, n_components=3, n_iter=10, n_neighbors=1000)
+    
+    print("\n====== MAKING RECOMMENDATIONS ======\n")
     recommender.recommend()
 
     error = recommender.calculate_error()
@@ -51,7 +54,8 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "test":
+    import sys
+    if len(sys.argv) == 2 and sys.argv[1] == "test":
         test()
     else:
         main()
