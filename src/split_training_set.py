@@ -21,17 +21,17 @@ def split_training_set():
     evaluation set are still represented in the training set.
     """
 
-    print("\n====== SPLITTING TRAINING SET ======\n")
-
     # load dataset
     df = pd.read_csv("./data/train.csv")
-    df.sort_values(by=['customer-id'], inplace=True)
 
     # for each customer-id and each movie-id, figure out
     # how many entries constitute 10% of their total
     # representation in the whole dataset
     eval_size_per_cid = df['customer-id'].value_counts().apply(lambda x: math.floor(x/10)).to_dict()
     eval_size_per_mid = df['movie-id'].value_counts().apply(lambda x: math.floor(x/10)).to_dict()
+
+    # shuffle rows to randomize split
+    df = df.sample(frac=1)
 
     # split training set
     my_train = []

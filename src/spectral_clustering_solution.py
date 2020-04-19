@@ -1,5 +1,4 @@
 import os
-import pickle
 import pandas as pd
 import numpy as np
 
@@ -8,6 +7,7 @@ from scipy.sparse import csc_matrix
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import mean_squared_error
 from sklearn.cluster import SpectralClustering
+from sklearn.model_selection import train_test_split
 
 from split_training_set import split_training_set
 
@@ -18,38 +18,42 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
 class ClusteringRecommender():
 
-    def __init__(self, production=True):
+    def __init__(self, production=True, splitter="my-splitter"):
 
-        self.production=production
-        
+        self.production = production
+
         if self.production:
             self.df_train = pd.read_csv("./data/train.csv").sort_values(by=['customer-id','movie-id'])
             self.df_test = pd.read_csv("./data/test.csv")
+
         else:
-            if not os.path.isfile("./data/my_train.csv"):
+            print("\n====== SPLITTING TRAINING SET ======\n")
+
+            if self.splitter == "my-splitter":
                 split_training_set()
-        
-            self.df_train = pd.read_csv("./data/my_train.csv").sort_values(by=['customer-id','movie-id'])
-            self.df_test = pd.read_csv("./data/my_test_blank.csv")
-            self.df_test_answers = pd.read_csv("./data/my_test_answers.csv")    
+            
+                self.df_train = pd.read_csv("./data/my_train.csv").sort_values(by=['customer-id','movie-id'])
+                self.df_test = pd.read_csv("./data/my_test_blank.csv")
+                self.df_test_answers = pd.read_csv("./data/my_test_answers.csv")
+
+            elif self.splitter == "sklearn":
+                split = train_test_split(pd.read_csv("./data/train.csv"))
+
+                self.df_train = split[0]
+                self.df_test_answers = split[1]
+                self.df_test = self.df_test_answers.copy(deep=True)
+                self.df_test["rating"] = self.df_test["rating"].apply(lambda x : "?")
+
+            else:
+                raise Exception("Must specify a splitting method")
     
         # dicts for mapping ids to indices in the customer_nodes matrix
         self.cid_to_index = {key:value for value, key in enumerate(self.df_train["customer-id"].unique())}
         self.mid_to_index = {key:value for value, key in enumerate(self.df_train["movie-id"].unique())}
 
-        # get customer_nodes matrix
-        if os.path.isfile("./data/customer_nodes.pckl"):
-            with open("./data/customer_nodes.pckl", "rb") as f:
-                self.customer_nodes = pickle.load(f)
-        else:
-            self.customer_nodes = self.build_customer_nodes_matrix()
+        self.customer_nodes = self.build_customer_nodes_matrix()
 
-        # get affinity_matrix
-        if os.path.isfile("./data/affinity_matrix.pckl"):
-            with open("./data/affinity_matrix.pckl", "rb") as f:
-                self.affinity_matrix = pickle.load(f)
-        else:
-            self.affinity_matrix = self.build_affinity_matrix()
+        self.affinity_matrix = self.build_affinity_matrix()
 
 
     def build_customer_nodes_matrix(self):
@@ -58,9 +62,6 @@ class ClusteringRecommender():
         col = np.array(self.df_train['movie-id'].apply(lambda x : self.mid_to_index[x]).tolist())
         data = np.array(self.df_train['rating'].tolist())
         customer_nodes = csc_matrix( (data,(row,col)), shape=(len(self.cid_to_index), len(self.mid_to_index)))
-        
-        with open("./data/customer_nodes.pckl", "wb") as f:
-            pickle.dump(customer_nodes, f)
 
         return customer_nodes
 
@@ -68,9 +69,6 @@ class ClusteringRecommender():
     def build_affinity_matrix(self):
 
         affinity_matrix = cosine_similarity(self.customer_nodes)
-
-        with open("./data/affinity_matrix.pckl", "wb") as f:
-            pickle.dump(affinity_matrix, f)
 
         return affinity_matrix
 
@@ -99,11 +97,17 @@ class ClusteringRecommender():
     def estimate_rating(self, cid, mid):
 
         # what other customers are in this cluster?
-        cids = self.cluster_to_cids[self.cid_to_cluster[cid]]
-        
-        cid_indices = [self.cid_to_index[x] for x in cids]
-        mid_index = self.mid_to_index[mid]
-        
+        try:
+            cids = self.cluster_to_cids[self.cid_to_cluster[cid]]
+            cid_indices = [self.cid_to_index[x] for x in cids]
+        except KeyError:
+            return 3
+
+        try:
+            mid_index = self.mid_to_index[mid]
+        except KeyError:
+            return 3      
+
         # get slice of cids from the same cluster for the particular mid
         temp = self.customer_nodes.getcol(mid_index).tocsr()[cid_indices]
         
@@ -112,8 +116,8 @@ class ClusteringRecommender():
         if temp.nnz > 0:
             average_rating = round(temp.data.mean())
         else:
-            average_rating = 0
-            
+            average_rating = 3
+
         return average_rating
 
 

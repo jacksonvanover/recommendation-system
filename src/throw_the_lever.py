@@ -41,7 +41,7 @@ def test():
 
 def main():
     print("\n====== INITIALIZING RECOMMENDER ======\n")
-    recommender = ClusteringRecommender(production=False)
+    recommender = ClusteringRecommender(production=False, splitter="my-splitter")
 
     print("\n====== PERFORMING CLUSTERING ======\n")
     recommender.cluster(n_clusters=5, n_components=3, n_iter=10, n_neighbors=1000)
