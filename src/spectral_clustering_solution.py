@@ -44,6 +44,11 @@ class ClusteringRecommender():
                 self.df_test = self.df_test_answers.copy(deep=True)
                 self.df_test["rating"] = self.df_test["rating"].apply(lambda x : "?")
 
+            elif splitter == "preprocessed":
+                self.df_filled = pd.read_csv("./data/my_train.csv")
+                self.df_blank = pd.read_csv("./data/my_test_blank.csv")
+                self.df_answers = pd.read_csv("./data/my_test_answers.csv")
+
             else:
                 raise Exception("Must specify a splitting method")
     
@@ -73,7 +78,7 @@ class ClusteringRecommender():
         return affinity_matrix
 
 
-    def cluster(self, n_clusters=25, n_components=7, n_iter=10, n_neighbors=500):
+    def cluster(self, n_clusters=5, n_components=3, n_iter=10, n_neighbors=1000):
         
         clustering = SpectralClustering(
             n_clusters=n_clusters,
