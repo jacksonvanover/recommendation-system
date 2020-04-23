@@ -11,7 +11,6 @@ from sklearn.metrics import mean_squared_error
 
 from split_training_set import split_training_set
 
-from pprint import pprint
 
 # set CWD to root of project directory tree
 os.chdir(os.path.dirname(os.path.abspath(__file__)) + "/..")
@@ -137,12 +136,20 @@ class MatrixCompletionRecommender():
             for rating in self.df_blank["rating"].tolist():
                 print(int(rating), file=f)
 
-        self.df_blank.to_csv("./data/my_test_filled.csv", index=False)
+        self.df_blank.to_csv("./data/matrixCompletion_test_filled.csv", index=False)
 
 
     def calculate_error(self):
         if self.production:
             raise Exception("No ground truth to evaluate against!")
         else:
-            return mean_squared_error(self.df_answers["rating"], self.df_blank["rating"])
-            
+            MSE = mean_squared_error(self.df_answers["rating"], self.df_blank["rating"])
+
+            correct = 0
+            total = 0
+            for answer, guess in zip(self.df_answers["rating"].tolist(), self.df_blank["rating"]):
+                total += 1
+                if answer == guess:
+                    correct += 1
+
+            return (correct, total, MSE)
