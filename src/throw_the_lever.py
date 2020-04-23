@@ -1,61 +1,31 @@
 #! /usr/bin/env python3
 
 from spectral_clustering_solution import ClusteringRecommender
-
-
-def test():
-    print("\n====== INITIALIZING RECOMMENDER ======\n")
-    recommender = ClusteringRecommender(production=False)
-
-    clusters = [5,6,7,8]
-    components = [3, 4, 5, 6]
-    neighbors = [250, 500, 1000]
-
-    configs = {}
-    counter = 1
-    for x in clusters:
-        for y in components:
-            for z in neighbors:
-                
-                print("=========")
-                print("Testing config {}/60".format(counter))
-                print("{} clusters, {} eigenvectors, {} nearest neighbors".format(x,y,z))
-
-                recommender.cluster(n_clusters=x, n_components=y, n_iter=10, n_neighbors=z)
-                recommender.recommend()
-
-                error = recommender.calculate_error()
-                print("\tMSE: {}\n".format(error))
-
-                configs["{},{},{}".format(x,y,z)] = error
-                counter += 1
-
-    minimum = ("",10000)
-    with open("output.txt", "w") as f:
-        for config, error in configs.items():
-            if error < minimum[1]:
-                minimum = (config, error)
-            print("{:>15} => {}".format(config, error))
-
-    print(minimum)
+from matrix_completion_solution import MatrixCompletionRecommender
 
 def main():
-    print("\n====== INITIALIZING RECOMMENDER ======\n")
-    recommender = ClusteringRecommender(production=False, splitter="my-splitter")
+    print("\n====== INITIALIZING RECOMMENDERS ======\n")
+    recommender1 = MatrixCompletionRecommender(production=False, splitter="my-splitter")
+    recommender2 = ClusteringRecommender(production=False, splitter="preprocessed")
 
     print("\n====== PERFORMING CLUSTERING ======\n")
-    recommender.cluster(n_clusters=5, n_components=3, n_iter=10, n_neighbors=1000)
-    
-    print("\n====== MAKING RECOMMENDATIONS ======\n")
-    recommender.recommend()
+    recommender1.cluster()
+    recommender2.cluster()
 
-    error = recommender.calculate_error()
-    print("\tMSE: {}\n".format(error))
+    print("\n====== MAKING RECOMMENDATIONS ======\n")
+    recommender1.recommend()
+    recommender2.recommend()
+
+    error = recommender1.calculate_error()
+    print("Matrix Completion Solution:")
+    print("\tCorrect: {}/{} = {}%".format(error[0], error[1], error[0]/error[1] * 100))
+    print("\tMSE: {}\n".format(error[2]))
+
+    error = recommender2.calculate_error()
+    print("Spectral Clustering Solution:")
+    print("\tCorrect: {}/{} = {}%".format(error[0], error[1], error[0]/error[1] * 100))
+    print("\tMSE: {}\n".format(error[2]))
 
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) == 2 and sys.argv[1] == "test":
-        test()
-    else:
-        main()
+    main()
