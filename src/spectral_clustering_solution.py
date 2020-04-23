@@ -45,9 +45,9 @@ class ClusteringRecommender():
                 self.df_test["rating"] = self.df_test["rating"].apply(lambda x : "?")
 
             elif splitter == "preprocessed":
-                self.df_filled = pd.read_csv("./data/my_train.csv")
-                self.df_blank = pd.read_csv("./data/my_test_blank.csv")
-                self.df_answers = pd.read_csv("./data/my_test_answers.csv")
+                self.df_train = pd.read_csv("./data/my_train.csv")
+                self.df_test = pd.read_csv("./data/my_test_blank.csv")
+                self.df_test_answers = pd.read_csv("./data/my_test_answers.csv")
 
             else:
                 raise Exception("Must specify a splitting method")
@@ -78,7 +78,7 @@ class ClusteringRecommender():
         return affinity_matrix
 
 
-    def cluster(self, n_clusters=5, n_components=3, n_iter=10, n_neighbors=1000):
+    def cluster(self, n_clusters=5, n_components=3, n_iter=10, n_neighbors=750):
         
         clustering = SpectralClustering(
             n_clusters=n_clusters,
@@ -136,14 +136,23 @@ class ClusteringRecommender():
             for rating in self.df_test["rating"].tolist():
                 print(int(rating), file=f)
 
-        df_test.to_csv("./data/my_test_filled.csv", index=False)
+        self.df_test.to_csv("./data/spectralClustering_test_filled.csv", index=False)
 
     def calculate_error(self):
         if self.production:
             raise Exception("No ground truth to evaluate against!")
         else:
-            return mean_squared_error(self.df_test_answers["rating"], self.df_test["rating"])
-            
+
+            MSE = mean_squared_error(self.df_test_answers["rating"], self.df_test["rating"])
+
+            correct = 0
+            total = 0
+            for answer, guess in zip(self.df_test_answers["rating"].tolist(), self.df_test["rating"]):
+                total += 1
+                if answer == guess:
+                    correct += 1
+
+            return (correct, total, MSE)
         
     def print_stats_for_nerds(self):
         print("\n====== CLUSTER DISTRIBUTION ======\n")
