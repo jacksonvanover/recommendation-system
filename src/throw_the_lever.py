@@ -5,8 +5,8 @@ from matrix_completion_solution import MatrixCompletionRecommender
 
 def main():
     print("\n====== INITIALIZING RECOMMENDERS ======\n")
-    recommender1 = MatrixCompletionRecommender(production=True)
-    recommender2 = ClusteringRecommender(production=True)
+    recommender1 = MatrixCompletionRecommender(production=False, splitter="my-splitter")
+    recommender2 = ClusteringRecommender(production=False, splitter="preprocessed")
 
     print("\n====== PERFORMING CLUSTERING ======\n")
     recommender1.cluster()
