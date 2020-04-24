@@ -113,9 +113,9 @@ class MatrixCompletionRecommender():
         U=U[:, 0:k]
         V=V[0:k, :]
 
-        Usk=np.dot(U,s)
-        skV=np.dot(s,V)
-        UsV = np.dot(Usk, skV)
+        Us=np.dot(U,s)
+        sV=np.dot(s,V)
+        UsV = np.dot(Us, sV)
 
         self.recommender_matrix = UsV
 
