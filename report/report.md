@@ -18,7 +18,7 @@ the ratings given for movie $y$ by users in the same cluster as $x$.
 Ratings of zero indicate members who have not seen movie $y$ or not
 rated it and are dropped before calculating the mean.
 
-INSERT DIAGRAM
+![Spectral Clustering Approach](./figures/image2.png)
 
 ### Technical Approach:
 
@@ -108,3 +108,66 @@ hold true: the configuration with the lowest mena-squared error used
 These two rounds of systematic testing gave a general direction within
 the search-space; Further trial-and-error tuning eventually led to the
 final choice of 5 clusters, 3 eigenvectors, and 750 nearest neighbors.
+
+*************************
+
+## Matrix Completion
+
+### Overview:
+
+With a matrix completion-based recommendation system, we start by
+viewing the data as a bipartite graph $G=(C,M,E)$ in which $C$ is the set
+of nodes representing customers, $M$ is the set of nodes representing
+movies, and $E$ is the set of weighted edges
+$\{(c,m,w)|c \in C, m \in M, w \in \{0, 1, 2, 3, 4, 5\}\}$
+where the weight $w$ is the rating
+user $u$ gave to movie $v$. We then consider a $|C| \times |M|$
+bi-adjacency matrix $A$ in which each row represents one user's
+ratings, each column represents one movie's ratings, and $A_{i,j}$
+represents a single user's rating of a single movie. In this context,
+the problem becomes one of completing the missing entries in $A$.
+Solutions to this problem are predicated on the assumption that $A$ is
+of low-rank. In this context, the assumption of low-rank equates to
+the assumption that compared to the total number of movies and users,
+the number of _latent factors_ that influence a user's opinion of a
+movie is small. In other words, the ratings of all users can be
+expressed as a linear combination of the ratings of a small number of
+prototypical users. In this assignment, I make use of the _singular
+value decomposition_ strategy for matrix completion.
+
+![Matrix Approach](./figures/image1.png)
+
+### Technical Approach:
+
+__Splitting the Training Set.__ See discussion above.
+
+__Constructing the Bipartite Graph: The Bi-Adjacency Matrix.__ This
+process looks just like the one described above for the Customer Nodes
+Ratings Matrix for Spectral Clustering with one addition; the test set
+of blank ratings is included as well. This ultimately results in a
+Bi-Adjacency Matrix in which $A_{i,j}\in\{0, 1, 2, 3, 4, 5, ?\}$.
+
+__Finding Bi-clusters: Hyper-parameter Tuning for Matrix Completion__ Before
+performing the singular value decomposition, we fill in each element
+in $A$ that is a zero or a question mark with the arithmetic mean of
+the other values in the column. This equates to filling in missing
+ratings with the average of the existing ratings for that film.
+
+A singular value decomposition is performed on this matrix, resulting
+in a $|C| \times |C|$ matrix $U$, a $|C| \times |C|$ diagonal matrix
+$S$, and a $|C| \times |M|$ matrix $V$. These matrices are then used
+to construct a matrix of predicted ratings. For a given choice of $k$
+bi-clusters, we then take the top $k$ columns of $U$, the top $k$ rows
+of $V$, and the top $k$ values of the diagonal matrix. Each of the
+column and row vectors is scaled by the square root of its respective
+value from $s$ before ultimately taking a series of $k$ outer-products
+and summing them up! In the source code, this can be done cleverly
+with a series of dot products.
+
+With only a single value to tune with this strategy, the search space
+was much easier to manage than with the spectral clustering solution.
+I began by using the optimal number of clusters discovered above as a
+base line, $k=5$. Variations in this quantity did not show any
+appreciable difference; MSE trended slightly higher with a higher
+value of $k$, but in order to avoid significantly overfitting the
+model, I settled on $k=6$. 
