@@ -1,6 +1,35 @@
-<!--For your clustering approach a) A short paragraph over-viewing the reasoning behind the approach, b) A diagrammatic summary of your approach, c) An at most one page detailed writeup on your approach including how you tuned any hyper-parameters. (15 points x 2)-->
+# Machine Learning Approaches to Netflix Recommendation 
 
-# Report: ECS 271, Programming Assignment 1
+This repository contains two unsupervised learning approaches to
+implementing a rudimentary film recommendation system: _Spectral
+Clustering_ and _Matrix Completion_. Given a training dataset of
+customer ratings, these methods will generate predictors of movie
+ratings for customers in the dataset who have yet to view/rate said
+movies.
+
+### Requirements:
+
+See the included `requirements.txt`. Alternatively, a docker image of
+the requirements can be attained by running the following from the
+root of the repo:
+
+```
+$ make env
+```
+
+This will automatically download the docker image of the required
+environment, spin up a container, mount the contents of this repo in
+that container, and start a bash shell.
+
+### Running the code:
+
+The main script for running the recommendation system is
+`throw_the_lever.py`. It must be provided with a command line argument
+`--method` specifying the desired method for the recommendation system
+(one of `spectral-clustering` or `matrix-completion`). For cross-file
+validation, a splitter method must be specified with the `--splitter`
+argument. Run `throw_the_lever.py` with the `--help` option for a full
+description.
 
 ## Spectral Clustering
 
@@ -18,7 +47,7 @@ the ratings given for movie $y$ by users in the same cluster as $x$.
 Ratings of zero indicate members who have not seen movie $y$ or not
 rated it and are dropped before calculating the mean.
 
-![Spectral Clustering Approach](./figures/image2.png)
+![Spectral Clustering Approach](./figures/spectral_flowchart.png)
 
 ### Technical Approach:
 
@@ -109,7 +138,6 @@ These two rounds of systematic testing gave a general direction within
 the search-space; Further trial-and-error tuning eventually led to the
 final choice of 5 clusters, 3 eigenvectors, and 750 nearest neighbors.
 
-*************************
 
 ## Matrix Completion
 
@@ -135,7 +163,7 @@ expressed as a linear combination of the ratings of a small number of
 prototypical users. In this assignment, I make use of the _singular
 value decomposition_ strategy for matrix completion.
 
-![Matrix Approach](./figures/image1.png)
+![Matrix Approach](./figures/matrix_flowchart2.png)
 
 ### Technical Approach:
 

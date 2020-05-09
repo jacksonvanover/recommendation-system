@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.cluster import SpectralClustering
 from sklearn.model_selection import train_test_split
 
-from split_training_set import split_training_set
+from src.split_training_set import split_training_set
 
 
 # set CWD to root of project directory tree
